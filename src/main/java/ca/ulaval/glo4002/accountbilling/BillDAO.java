@@ -23,15 +23,15 @@ public class BillDAO {
 	private BillDAO() {
 	}
 
-	public Bill findBill(BillId id) {
+	public Bill findBill(BillId billId) {
 		throw new UnsupportedOperationException("For the purposes of this workshop, you can't call this.");
 	}
 
-	public List<Bill> findAllByClient(ClientId cid) {
+	public List<Bill> findAllByClient(ClientId clientId) {
 		throw new UnsupportedOperationException("For the purposes of this workshop, you can't call this.");
 	}
 
-	public void persist(Bill b) {
+	public void persist(Bill bill) {
 		throw new UnsupportedOperationException("For the purposes of this workshop, you can't call this.");
 	}
 

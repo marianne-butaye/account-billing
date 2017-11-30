@@ -16,28 +16,28 @@ public class AccountBillingService {
 
       List<Allocation> currentBillAllocations = currentBill.getAllocations();
 
-      for (Allocation allocation : currentBillAllocations) {
+      for (Allocation currentBillAllocation : currentBillAllocations) {
         List<Bill> clientBills = BillDAO.getInstance().findAllByClient(clientId);
-        int amount = allocation.getAmount();
+        int amountLeftToRedistribute = currentBillAllocation.getAmount();
 
-        for (Bill bill : clientBills) {
-          if (currentBill != bill) {
-            int remainingAmount = bill.getRemainingAmount();
-            Allocation newAllocation;
-            if (remainingAmount <= amount) {
-              newAllocation = new Allocation(remainingAmount);
-              amount -= remainingAmount;
+        for (Bill clientBill : clientBills) {
+          if (currentBill != clientBill) {
+            int remainingAmountOnClientBill = clientBill.getRemainingAmount();
+            Allocation redistributedAllocation;
+            if (remainingAmountOnClientBill <= amountLeftToRedistribute) {
+              redistributedAllocation = new Allocation(remainingAmountOnClientBill);
+              amountLeftToRedistribute -= remainingAmountOnClientBill;
             } else {
-              newAllocation = new Allocation(amount);
-              amount = 0;
+              redistributedAllocation = new Allocation(amountLeftToRedistribute);
+              amountLeftToRedistribute = 0;
             }
 
-            bill.addAllocation(newAllocation);
+            clientBill.addAllocation(redistributedAllocation);
 
-            BillDAO.getInstance().persist(bill);
+            BillDAO.getInstance().persist(clientBill);
           }
 
-          if (amount == 0) {
+          if (amountLeftToRedistribute == 0) {
             break;
           }
         }

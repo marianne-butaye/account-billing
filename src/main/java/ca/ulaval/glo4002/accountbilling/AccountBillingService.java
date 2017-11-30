@@ -5,36 +5,36 @@ import java.util.List;
 public class AccountBillingService {
 
   public void cancelInvoiceAndRedistributeFunds(BillId billId) {
-    Bill currentBill = BillDAO.getInstance().findBill(billId);
-    if (!(currentBill == null)) {
-      ClientId clientId = currentBill.getClientId();
+    Bill billToCancel = BillDAO.getInstance().findBill(billId);
+    if (billToCancel != null) {
+      ClientId clientId = billToCancel.getClientId();
 
-      if (currentBill.isCancelled() != true) {
-        currentBill.cancel();
+      if (!billToCancel.isCancelled()) {
+        billToCancel.cancel();
       }
-      BillDAO.getInstance().persist(currentBill);
+      BillDAO.getInstance().persist(billToCancel);
 
-      List<Allocation> currentBillAllocations = currentBill.getAllocations();
+      List<Allocation> allocationsToRedistribute = billToCancel.getAllocations();
 
-      for (Allocation currentBillAllocation : currentBillAllocations) {
-        List<Bill> clientBills = BillDAO.getInstance().findAllByClient(clientId);
-        int amountLeftToRedistribute = currentBillAllocation.getAmount();
+      for (Allocation allocationToRedistribute : allocationsToRedistribute) {
+        List<Bill> unpaidBills = BillDAO.getInstance().findAllByClient(clientId);
+        int amountLeftToRedistribute = allocationToRedistribute.getAmount();
 
-        for (Bill clientBill : clientBills) {
-          if (currentBill != clientBill) {
-            int remainingAmountOnClientBill = clientBill.getRemainingAmount();
-            Allocation redistributedAllocation;
-            if (remainingAmountOnClientBill <= amountLeftToRedistribute) {
-              redistributedAllocation = new Allocation(remainingAmountOnClientBill);
-              amountLeftToRedistribute -= remainingAmountOnClientBill;
+        for (Bill unpaidBill : unpaidBills) {
+          if (billToCancel != unpaidBill) {
+            int amountLeftToPay = unpaidBill.getRemainingAmount();
+            Allocation amountRedistributed;
+            if (amountLeftToPay <= amountLeftToRedistribute) {
+              amountRedistributed = new Allocation(amountLeftToPay);
+              amountLeftToRedistribute -= amountLeftToPay;
             } else {
-              redistributedAllocation = new Allocation(amountLeftToRedistribute);
+              amountRedistributed = new Allocation(amountLeftToRedistribute);
               amountLeftToRedistribute = 0;
             }
 
-            clientBill.addAllocation(redistributedAllocation);
+            unpaidBill.addAllocation(amountRedistributed);
 
-            BillDAO.getInstance().persist(clientBill);
+            BillDAO.getInstance().persist(unpaidBill);
           }
 
           if (amountLeftToRedistribute == 0) {

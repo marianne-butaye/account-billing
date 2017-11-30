@@ -14,13 +14,13 @@ public class AccountBillingService {
       }
       BillDAO.getInstance().persist(currentBill);
 
-      List<Allocation> allocations = currentBill.getAllocations();
+      List<Allocation> currentBillAllocations = currentBill.getAllocations();
 
-      for (Allocation allocation : allocations) {
-        List<Bill> bills = BillDAO.getInstance().findAllByClient(clientId);
+      for (Allocation allocation : currentBillAllocations) {
+        List<Bill> clientBills = BillDAO.getInstance().findAllByClient(clientId);
         int amount = allocation.getAmount();
 
-        for (Bill bill : bills) {
+        for (Bill bill : clientBills) {
           if (currentBill != bill) {
             int remainingAmount = bill.getRemainingAmount();
             Allocation newAllocation;
@@ -46,4 +46,5 @@ public class AccountBillingService {
       throw new BillNotFoundException();
     }
   }
+
 }
